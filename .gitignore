@@ -1,2 +1,5 @@
-cron_sa_learn.log
+*.log
+*_log
+*.cnf
+*_cnf
 settings.cnf
