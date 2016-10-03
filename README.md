@@ -9,6 +9,7 @@ cd /usr/local/directadmin/scripts/custom/
 git clone https://github.com/poralix/directadmin-teach-sa.git
 cd ./directadmin-teach-sa
 cp -p ./0teach_sa.cron /etc/cron.d/
+cp -p settings.cnf.default settings.cnf
 ```
 
 # First run
