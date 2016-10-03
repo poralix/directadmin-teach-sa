@@ -22,17 +22,34 @@ cd /usr/local/directadmin/scripts/custom/directadmin-teach-sa
 
 # Structure
 
-**create_folders.sh** - a script to create *teach-isspam* and *teach-isnotspam* folders per email box:
+**create_folders.sh** - a script to create *teach-isspam* and *teach-isnotspam* folders:
 
-- for a single domain
-- for all domains
+- for a single email-box
+- for all email boxes on a single domain
+- for all domains on a server
 
 *Usage*:
 
 ```
-./create_folders.sh [<domain-name>|--all|--options]
+./create_folders.sh [<email-box>|<domain-name>|--all|--settings]
 ```
 
+Can be used with the Directadmin hook-script: /usr/local/directadmin/scripts/custom/email_create_post.sh
+
+```
+#!/bin/sh
+SCRIPT="/usr/local/directadmin/scripts/custom/directadmin-teach-sa/create_folders.sh";
+[ -x "${SCRIPT}" ] && ${SCRIPT} "${user}@${domain}" >/dev/null 2>&1;
+```
+
+or copy the sample *email_create_post.sh.sample*:
+
+```
+cp -p /usr/local/directadmin/scripts/custom/email_create_post.sh /usr/local/directadmin/scripts/custom/email_create_post.sh~bak
+cp email_create_post.sh.sample /usr/local/directadmin/scripts/custom/email_create_post.sh
+chmod 700 /usr/local/directadmin/scripts/custom/email_create_post.sh
+chown diradmin:diradmin /usr/local/directadmin/scripts/custom/email_create_post.sh
+```
 
 **cron_sa_learn.sh** - a script to run with *cron*. The script goes through all Directadmin users and 
 teach SpamAssassin per user bases. Every user has its own bayes data, stored under his/her own homedir.

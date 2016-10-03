@@ -1,0 +1,9 @@
+#!/bin/sh
+# Create IMAP folders for teaching SpamAssassin
+SCRIPT="/usr/local/directadmin/scripts/custom/directadmin-teach-sa/create_folders.sh";
+if [ -n "${user}" ] && [ -n "${domain}" ] && [ -x "${SCRIPT}" ];
+then
+{
+     ${SCRIPT} "${user}@${domain}" >/dev/null 2>&1;
+}
+fi;

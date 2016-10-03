@@ -1,20 +1,21 @@
 #!/bin/env bash
 #######################################################################################
 ##
-## Written by Alex S Grebenschikov $ Mon Sep 26 18:34:51 +07 2016
+## Written by Alex S Grebenschikov (zEitEr) $ Mon Sep 26 18:34:51 +07 2016
 ## www: http://www.poralix.com/
 ## email: support@poralix.com
+## Version: 0.1 (beta), Mon Oct  3 16:49:19 +07 2016
 ##
 #######################################################################################
 ##
-## The script creates imap folders for all email accounts on the server
-## according to this guide http://help.directadmin.com/item.php?id=358
+## The script creates IMAP folders TEACH-SPAM and TEACH-ISNOTSPAM on per 
+## mailbox, domain bases or for all existing domains.
 ##
 #######################################################################################
 ##
 ## MIT License
 ##
-## Copyright (c) 2016 Alex S Grebenschikov
+## Copyright (c) 2016 Alex S Grebenschikov (www.poralix.com)
 ##
 ## Permission is hereby granted, free of charge, to any person obtaining a copy
 ## of this software and associated documentation files (the "Software"), to deal
@@ -51,9 +52,32 @@ if [ -f "settings.cnf" ]; then
 . settings.cnf
 fi;
 
+function e()
+{
+    echo "[$(date)] $@";
+}
+
 function usage()
 {
-    echo "Usage $0 [<domain-name>|--all|--options]";
+    echo "#############################################################################";
+    echo "#   The script creates IMAP folders TEACH-SPAM and TEACH-ISNOTSPAM on per   #";
+    echo "#   mailbox, domain bases or for all existing domains                       #";
+    echo "#                                                                           #";
+    echo "#   Written by Alex S Grebenschikov (zEitEr), web: www.poralix.com          #";
+    echo "#                                                                           #";
+    echo "#############################################################################";
+    echo "";
+    echo "Usage $0 [<email-box>|<domain-name>|--all|--settings]";
+    echo "";
+    echo "Options:"
+    echo "   <email-box>   - specify a mail-box to create folders for a single";
+    echo "                   mailbox, e.g. info@example.com";
+    echo "   <domain-name> - specify a domain-name to create folder for all ";
+    echo "                   existing mail-boxes on the domain, e.g. example.com";
+    echo "   --all         - used to create imap folders for all existing mail boxes";
+    echo "                   on all the existing domains on the server";
+    echo "   --settings    - used to show names of the imap folders for learning";
+    echo "";
     exit 1;
 }
 
@@ -75,61 +99,71 @@ function process_folder()
 
     if [ ! -d "${check_dir}" ]; then
     {
-        echo "[OK] [+] Creating directory ${check_dir}";
+        e "[OK] [+] Creating directory ${check_dir}";
         mkdir ${check_dir};
 
         chmod 770 ${check_dir};
         chown ${user}:mail ${check_dir};
-        [ -d "${check_dir}" ] && echo "[OK] [+] Created ${check_dir}";
+        [ -d "${check_dir}" ] && e "[OK] [+] Created ${check_dir}";
     }
     else
     {
-        echo "[WARNING] [-] Directory ${check_dir} already exists, skipping...";
+        e "[WARNING] [-] Directory ${check_dir} already exists, skipping...";
     }
     fi;
 
     c=`grep ${check_folder} ${mdir}/subscriptions -c`
     if [ $c -eq 0 ]; then
     {
-        echo "[OK] [+] Updating subscriptions";
+        e "[OK] [+] Updating subscriptions";
         echo ${check_folder} >> ${mdir}/subscriptions
     }
     else
     {
-        echo "[WARNING] [-] Skipping subscriptions. Already exists...";
+        e "[WARNING] [-] Skipping subscriptions. Already exists...";
     }
     fi;
+}
+
+function process_mailbox()
+{
+    email="${1}";
+    mailbox=`echo ${email} | cut -d\@ -f1`;
+    domain=`echo ${email} | cut -d\@ -f2`;
+    e "[OK] Running for mailbox ${mailbox} on domain ${domain}";
+    process_domain "${domain}" "${mailbox}";
 }
 
 function process_domain()
 {
     domain="${1}";
+    mailbox="${2}";
     user=`grep ^${domain}: /etc/virtual/domainowners | cut -d\  -f2`;
 
     if [ -z "${user}" ];
     then
     {
-        echo "[ERROR] Domain ${domain} was not found on the server!";
+        e "[ERROR] Domain ${domain} was not found on the server!";
         return;
     }
     fi;
 
-    echo "[OK] Domain ${domain} owned by user ${user}";
+    e "[OK] Domain ${domain} owned by user ${user}";
 
     if [ ! -d "/home/${user}/imap/${domain}/" ];
     then
     {
-        echo "[WARNING] Does not seem to have imap folder. Skipping...";
+        e "[WARNING] Does not seem to have imap folder. Skipping...";
         return;
     }
     fi;
 
-    echo "[OK] Found imap folder /home/${user}/imap/${domain}/";
+    e "[OK] Found imap folder /home/${user}/imap/${domain}/";
 
     if [ ! -f "/etc/virtual/${domain}/passwd" ];
     then
     {
-        echo "[WARNING] Password file does not exist for the domain ${domain}!";
+        e "[WARNING] Password file does not exist for the domain ${domain}!";
         return;
     }
     fi;
@@ -138,35 +172,30 @@ function process_domain()
 
     if [ "${c}" == "0" ]; 
     then
-        echo "[WARNING] Password file found but is empty for the domain ${domain}. Skipping...";
+    {
+        e "[WARNING] Password file found but is empty for the domain ${domain}. Skipping...";
         return;
+    }
     fi;
 
-    echo "[OK] Password file found for the domain ${domain}";
+    e "[OK] Password file found for the domain ${domain}";
 
-    for box in `cat /etc/virtual/${domain}/passwd | cut -d\: -f1`;
-    do
+    if [ -z "${mailbox}" ];
+    then
     {
-        mdir="`grep ^${box}: /etc/virtual/${domain}/passwd | cut -d\: -f6`/Maildir";
-
-        if [ -d "${mdir}" ];
-        then
+        for box in `cat /etc/virtual/${domain}/passwd | cut -d\: -f1`;
+        do
         {
-            echo "[OK] Found maildir for ${box} in ${mdir}";
-
-            # SPAM
-            if [ -n "${TEACH_SPAM_FOLDER}" ]; then process_folder ${TEACH_SPAM_FOLDER}; fi;
-
-            # HAM
-            if [ -n "${TEACH_HAM_FOLDER}" ]; then process_folder ${TEACH_HAM_FOLDER}; fi;
+            create_folders;
         }
-        else
-        {
-            echo "[WARNING] maildir ${box} was not found in ${mdir}";
-        }
-        fi;
+        done;
     }
-    done;
+    else
+    {
+        box=`cat /etc/virtual/${domain}/passwd | grep "^${mailbox}:"|cut -d\: -f1`;
+        create_folders;
+    }
+    fi;
 }
 
 function process_all_domains()
@@ -179,17 +208,41 @@ function process_all_domains()
     done;
 }
 
+function create_folders()
+{
+    mdir="`grep ^${box}: /etc/virtual/${domain}/passwd | cut -d\: -f6`/Maildir";
+
+    if [ -d "${mdir}" ];
+    then
+    {
+        e "[OK] Found maildir for ${box} in ${mdir}";
+
+        # SPAM
+        if [ -n "${TEACH_SPAM_FOLDER}" ]; then process_folder ${TEACH_SPAM_FOLDER}; fi;
+
+        # HAM
+        if [ -n "${TEACH_HAM_FOLDER}" ]; then process_folder ${TEACH_HAM_FOLDER}; fi;
+    }
+    else
+    {
+        e "[WARNING] maildir ${box} was not found in ${mdir}";
+    }
+    fi;
+}
+
 if [ -z "$1" ]; then usage; fi;
 
 case $1 in
     "--all")
         process_all_domains;
     ;;
-    "--options")
+    "--settings")
         show_options;
     ;;
     *)
-        process_domain "${1}";
+        c=`echo ${1} | grep -c '@'`;
+        if [ "${c}" == "0" ]; then process_domain "${1}"; fi;
+        if [ "${c}" == "1" ]; then process_mailbox "${1}"; fi;
     ;;
 esac;
 
