@@ -125,11 +125,21 @@ function teach_user_ham()
 
 function process_maildir()
 {
-    USER_SPAM_FOLDER="${1}/.${TEACH_SPAM_FOLDER}";
-    if [ -d "${USER_SPAM_FOLDER}/new" ] || [ -d "${USER_SPAM_FOLDER}/cur" ]; then teach_user_spam "${USER_SPAM_FOLDER}"; fi;
+    if [ -n "${TEACH_SPAM_FOLDER}" ];
+    then
+    {
+        USER_SPAM_FOLDER="${1}/.${TEACH_SPAM_FOLDER}";
+        if [ -d "${USER_SPAM_FOLDER}/new" ] || [ -d "${USER_SPAM_FOLDER}/cur" ]; then teach_user_spam "${USER_SPAM_FOLDER}"; fi;
+    }
+    fi;
 
-    USER_HAM_FOLDER="${1}/.${TEACH_HAM_FOLDER}";
-    if [ -d "${USER_HAM_FOLDER}/new" ] || [ -d "${USER_HAM_FOLDER}/cur" ]; then teach_user_ham "${USER_HAM_FOLDER}"; fi;
+    if [ -n "${TEACH_HAM_FOLDER}" ];
+    then
+    {
+        USER_HAM_FOLDER="${1}/.${TEACH_HAM_FOLDER}";
+        if [ -d "${USER_HAM_FOLDER}/new" ] || [ -d "${USER_HAM_FOLDER}/cur" ]; then teach_user_ham "${USER_HAM_FOLDER}"; fi;
+    }
+    fi;
 
     ${SUDO} -u ${user} /usr/bin/sa-learn --sync;
     ${SUDO} -u ${user} /usr/bin/sa-learn --dump magic;
