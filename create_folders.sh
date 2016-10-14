@@ -45,12 +45,12 @@
 ##
 #######################################################################################
 
+DELETE_TEACH_DATA="0";
 TEACH_SPAM_FOLDER="INBOX.teach-isspam";
 TEACH_HAM_FOLDER="INBOX.teach-isnotspam";
 
-if [ -f "settings.cnf" ]; then
-. settings.cnf
-fi;
+SETTINGS_FILE="`dirname $0`/settings.cnf";
+if [ -f "${SETTINGS_FILE}" ]; then . ${SETTINGS_FILE}; fi;
 
 function e()
 {
@@ -86,8 +86,9 @@ function show_options()
     echo "";
     echo "TEACH SPAM FOLDER: ${TEACH_SPAM_FOLDER}";
     echo "TEACH NOT SPAM FOLDER: ${TEACH_HAM_FOLDER}";
+    echo "DELETE TEACH DATA: ${DELETE_TEACH_DATA}";
     echo "";
-    echo "The folders can be re-defined in settings.cnf";
+    echo "The settings can be re-defined in `dirname $0`/settings.cnf";
     echo "";
     exit 1;
 }

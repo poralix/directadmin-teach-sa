@@ -46,13 +46,12 @@
 ##
 #######################################################################################
 
-DELETE_TEACH_DATA=0;
+DELETE_TEACH_DATA="0";
 TEACH_SPAM_FOLDER="INBOX.teach-isspam";
 TEACH_HAM_FOLDER="INBOX.teach-isnotspam";
 
-if [ -f "settings.cnf" ]; then
-. settings.cnf;
-fi;
+SETTINGS_FILE="`dirname $0`/settings.cnf";
+if [ -f "${SETTINGS_FILE}" ]; then . ${SETTINGS_FILE}; fi;
 
 USER_ID=`id -u`;
 
