@@ -4,7 +4,7 @@
 ## Written by Alex S Grebenschikov (zEitEr) $ Mon Sep 26 18:34:51 +07 2016
 ## www: http://www.poralix.com/
 ## email: support@poralix.com
-## Version: 0.1 (beta), Mon Oct  3 16:49:19 +07 2016
+## Version: 0.2 (beta), Mon Sep 11 20:04:25 +07 2017
 ##
 #######################################################################################
 ##
@@ -147,6 +147,14 @@ function process_maildir()
 function process_user()
 {
     USER_HOME="/home/${user}";
+
+    if [ -d "${USER_HOME}/Maildir" ]; then
+    {
+        e "[OK] [${user}] [+] found system mail account in ${USER_HOME}/Maildir";
+        process_maildir "${USER_HOME}/Maildir";
+    }
+    fi;
+
     for domain in `ls ${USER_HOME}/imap`;
     do
     {

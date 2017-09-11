@@ -4,7 +4,7 @@
 ## Written by Alex S Grebenschikov (zEitEr) $ Mon Sep 26 18:34:51 +07 2016
 ## www: http://www.poralix.com/
 ## email: support@poralix.com
-## Version: 0.1 (beta), Mon Oct  3 16:49:19 +07 2016
+## Version: 0.2 (beta), Mon Sep 11 20:04:25 +07 2017
 ##
 #######################################################################################
 ##
@@ -95,29 +95,30 @@ function show_options()
 
 function process_folder()
 {
-    check_folder="${1}";
-    check_dir="${mdir}/.${check_folder}/";
+    local loc_folder="${1}";
+    local loc_mdir="${2}";
+    local loc_dir="${loc_mdir}/.${loc_folder}/";
 
-    if [ ! -d "${check_dir}" ]; then
+    if [ ! -d "${loc_dir}" ]; then
     {
-        e "[OK] [+] Creating directory ${check_dir}";
-        mkdir ${check_dir};
+        e "[OK] [+] Creating directory ${loc_dir}";
+        mkdir ${loc_dir};
 
-        chmod 770 ${check_dir};
-        chown ${user}:mail ${check_dir};
-        [ -d "${check_dir}" ] && e "[OK] [+] Created ${check_dir}";
+        chmod 770 ${loc_dir};
+        chown ${user}:mail ${loc_dir};
+        [ -d "${loc_dir}" ] && e "[OK] [+] Created ${loc_dir}";
     }
     else
     {
-        e "[WARNING] [-] Directory ${check_dir} already exists, skipping...";
+        e "[WARNING] [-] Directory ${loc_dir} already exists, skipping...";
     }
     fi;
 
-    c=`grep ${check_folder} ${mdir}/subscriptions -c`
-    if [ $c -eq 0 ]; then
+    c=`grep ${loc_folder} ${loc_mdir}/subscriptions -c 2>/dev/null`
+    if [ "${c}" == "0" ]; then
     {
         e "[OK] [+] Updating subscriptions";
-        echo ${check_folder} >> ${mdir}/subscriptions
+        echo ${loc_folder} >> ${loc_mdir}/subscriptions
     }
     else
     {
@@ -150,6 +151,28 @@ function process_domain()
     fi;
 
     e "[OK] Domain ${domain} owned by user ${user}";
+
+    # Create folder for system mail account
+    if [ -d "/home/${user}/Maildir" ]; then
+    {
+        if [ -z "${mailbox}" ];
+        then
+        {
+            e "[OK] Processing system mail account for user ${user} (i.e. ${user}@$(hostname))";
+
+            # SPAM
+            if [ -n "${TEACH_SPAM_FOLDER}" ]; then process_folder "${TEACH_SPAM_FOLDER}" "/home/${user}/Maildir"; fi;
+
+            # HAM
+            if [ -n "${TEACH_HAM_FOLDER}" ]; then process_folder "${TEACH_HAM_FOLDER}" "/home/${user}/Maildir"; fi;
+        }
+        else
+        {
+            e "[WARNING] Skipping system account for user ${user}, as programm is running in a single mailbox mode...";
+        }
+        fi;
+    }
+    fi;
 
     if [ ! -d "/home/${user}/imap/${domain}/" ];
     then
@@ -211,7 +234,7 @@ function process_all_domains()
 
 function create_folders()
 {
-    mdir="`grep ^${box}: /etc/virtual/${domain}/passwd | cut -d\: -f6`/Maildir";
+    local mdir="`grep ^${box}: /etc/virtual/${domain}/passwd | cut -d\: -f6`/Maildir";
 
     if [ -d "${mdir}" ];
     then
@@ -219,10 +242,10 @@ function create_folders()
         e "[OK] Found maildir for ${box} in ${mdir}";
 
         # SPAM
-        if [ -n "${TEACH_SPAM_FOLDER}" ]; then process_folder ${TEACH_SPAM_FOLDER}; fi;
+        if [ -n "${TEACH_SPAM_FOLDER}" ]; then process_folder "${TEACH_SPAM_FOLDER}" "${mdir}"; fi;
 
         # HAM
-        if [ -n "${TEACH_HAM_FOLDER}" ]; then process_folder ${TEACH_HAM_FOLDER}; fi;
+        if [ -n "${TEACH_HAM_FOLDER}" ]; then process_folder "${TEACH_HAM_FOLDER}" "${mdir}"; fi;
     }
     else
     {
