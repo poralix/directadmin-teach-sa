@@ -197,7 +197,7 @@ function process_domain()
     if [ "${c}" == "0" ]; 
     then
     {
-        e "[WARNING] Password file found but is empty for the domain ${domain}. Skipping...";
+        e "[NOTICE] Password file found but is empty for the domain ${domain}. Skipping...";
         return;
     }
     fi;
