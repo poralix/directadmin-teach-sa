@@ -4,7 +4,7 @@
 ## Written by Alex S Grebenschikov (zEitEr) $ Mon Sep 26 18:34:51 +07 2016
 ## www: http://www.poralix.com/
 ## email: support@poralix.com
-## Version: 0.2 (beta), Mon Sep 11 20:04:25 +07 2017
+## Version: 0.3 (beta), Mon Sep 25 01:07:32 +07 2017
 ##
 #######################################################################################
 ##
@@ -110,7 +110,7 @@ function process_folder()
     }
     else
     {
-        e "[WARNING] [-] Directory ${loc_dir} already exists, skipping...";
+        e "[NOTICE] [-] Directory ${loc_dir} already exists, skipping...";
     }
     fi;
 
@@ -122,7 +122,7 @@ function process_folder()
     }
     else
     {
-        e "[WARNING] [-] Skipping subscriptions. Already exists...";
+        e "[NOTICE] [-] Skipping subscriptions. Already exists...";
     }
     fi;
 }
@@ -161,14 +161,14 @@ function process_domain()
             e "[OK] Processing system mail account for user ${user} (i.e. ${user}@$(hostname))";
 
             # SPAM
-            if [ -n "${TEACH_SPAM_FOLDER}" ]; then process_folder "${TEACH_SPAM_FOLDER}" "/home/${user}/Maildir"; fi;
+            if [ -n "${TEACH_SPAM_FOLDER}" ]; then process_folder "${TEACH_SPAM_FOLDER}" "/home/${user}/Maildir" >/dev/null; fi;
 
             # HAM
-            if [ -n "${TEACH_HAM_FOLDER}" ]; then process_folder "${TEACH_HAM_FOLDER}" "/home/${user}/Maildir"; fi;
+            if [ -n "${TEACH_HAM_FOLDER}" ]; then process_folder "${TEACH_HAM_FOLDER}" "/home/${user}/Maildir" >/dev/null; fi;
         }
         else
         {
-            e "[WARNING] Skipping system account for user ${user}, as programm is running in a single mailbox mode...";
+            e "[NOTICE] Skipping system account for user ${user}, as programm is running in a single mailbox mode...";
         }
         fi;
     }
@@ -177,7 +177,7 @@ function process_domain()
     if [ ! -d "/home/${user}/imap/${domain}/" ];
     then
     {
-        e "[WARNING] Does not seem to have imap folder. Skipping...";
+        e "[NOTICE] Does not seem to have imap folder. Skipping...";
         return;
     }
     fi;
@@ -187,7 +187,7 @@ function process_domain()
     if [ ! -f "/etc/virtual/${domain}/passwd" ];
     then
     {
-        e "[WARNING] Password file does not exist for the domain ${domain}!";
+        e "[NOTICE] Password file does not exist for the domain ${domain}!";
         return;
     }
     fi;
@@ -234,40 +234,52 @@ function process_all_domains()
 
 function create_folders()
 {
-    local mdir="`grep ^${box}: /etc/virtual/${domain}/passwd | cut -d\: -f6`/Maildir";
-
-    if [ -d "${mdir}" ];
+    local mdir=`grep ^${box}: /etc/virtual/${domain}/passwd | cut -d\: -f6`;
+    if [ -n "${mdir}" ]; 
     then
     {
-        e "[OK] Found maildir for ${box} in ${mdir}";
+        mdir="${mdir}/Maildir";
 
-        # SPAM
-        if [ -n "${TEACH_SPAM_FOLDER}" ]; then process_folder "${TEACH_SPAM_FOLDER}" "${mdir}"; fi;
+        if [ -d "${mdir}" ];
+        then
+        {
+            e "[OK] Found maildir for ${box} in ${mdir}";
 
-        # HAM
-        if [ -n "${TEACH_HAM_FOLDER}" ]; then process_folder "${TEACH_HAM_FOLDER}" "${mdir}"; fi;
-    }
-    else
-    {
-        e "[WARNING] maildir ${box} was not found in ${mdir}";
+            # SPAM
+            if [ -n "${TEACH_SPAM_FOLDER}" ]; then process_folder "${TEACH_SPAM_FOLDER}" "${mdir}"; fi;
+
+            # HAM
+            if [ -n "${TEACH_HAM_FOLDER}" ]; then process_folder "${TEACH_HAM_FOLDER}" "${mdir}"; fi;
+        }
+        else
+        {
+            e "[WARNING] maildir ${box} was not found in ${mdir}";
+        }
+        fi;
     }
     fi;
 }
 
 if [ -z "$1" ]; then usage; fi;
 
+
 case $1 in
     "--all")
+        e "[OK] Program started"
         process_all_domains;
+        e "[OK] Program finished"
     ;;
     "--settings")
         show_options;
     ;;
     *)
+        e "[OK] Program started"
         c=`echo ${1} | grep -c '@'`;
-        if [ "${c}" == "0" ]; then process_domain "${1}"; fi;
-        if [ "${c}" == "1" ]; then process_mailbox "${1}"; fi;
+        if [ "${c}" == "0" ]; then process_domain "${1}";
+        else process_mailbox "${1}"; fi;
+        e "[OK] Program finished"
     ;;
 esac;
+
 
 exit 0;
