@@ -148,6 +148,7 @@ function process_user()
 {
     USER_HOME="/home/${user}";
 
+    # Processing system mail account for an user
     if [ -d "${USER_HOME}/Maildir" ]; then
     {
         e "[OK] [${user}] [+] found system mail account in ${USER_HOME}/Maildir";
@@ -155,20 +156,25 @@ function process_user()
     }
     fi;
 
-    for domain in `ls ${USER_HOME}/imap`;
-    do
+    # Processing virtual mail accounts for user's domains
+    if [ -d "${USER_HOME}/imap" ]; then
     {
-        DOMAIN_DIR="${USER_HOME}/imap/${domain}";
-        if [ -h "${DOMAIN_DIR}" ]; then continue; fi;
-
-        e "[OK] [${user}] [+] found domain ${domain} owned by ${user}";
-
-        for mdir in `ls -d ${DOMAIN_DIR}/*/Maildir 2>/dev/null`;
+        for domain in `ls ${USER_HOME}/imap 2>/dev/null`;
         do
         {
-            e "[OK] [${user}] [+] found ${mdir}";
-            process_maildir "${mdir}";
-        };
+            DOMAIN_DIR="${USER_HOME}/imap/${domain}";
+            if [ -h "${DOMAIN_DIR}" ]; then continue; fi;
+
+            e "[OK] [${user}] [+] found domain ${domain} owned by ${user}";
+
+            for mdir in `ls -d ${DOMAIN_DIR}/*/Maildir 2>/dev/null`;
+            do
+            {
+                e "[OK] [${user}] [+] found ${mdir}";
+                process_maildir "${mdir}";
+            };
+            done;
+        }
         done;
     }
     done;
