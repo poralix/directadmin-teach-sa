@@ -4,7 +4,7 @@
 ## Written by Alex S Grebenschikov (zEitEr) $ Mon Sep 26 18:34:51 +07 2016
 ## www: http://www.poralix.com/
 ## email: support@poralix.com
-## Version: 0.2 (beta), Mon Sep 11 20:04:25 +07 2017
+## Version: 0.3 (beta), Mon Sep 25 01:07:32 +07 2017
 ##
 #######################################################################################
 ##
