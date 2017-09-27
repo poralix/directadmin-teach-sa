@@ -98,6 +98,7 @@ function teach_user_spam()
 {
     if [ -n "$(find ${1}/{new,cur}/* -type f 2>/dev/null)" ]; then
     {
+        e "[OK] [${user}] [+] Found some emails under ${1}, now learning spam";
         local loc_res=`${SUDO} -u ${user} /usr/bin/sa-learn --no-sync --spam  ${1}/{cur,new}`;
         DO_SYNC=1;
         e "[OK] [${user}] [+] Teaching user SPAM from ${1}";
@@ -122,6 +123,7 @@ function teach_user_ham()
 {
     if [ -n "$(find ${1}/{new,cur}/* -type f 2>/dev/null)" ]; then
     {
+        e "[OK] [${user}] [+] Found some emails under ${1}, now learning ham";
         local loc_res=`${SUDO} -u ${user} /usr/bin/sa-learn --no-sync --ham  ${1}/{cur,new}`;
         DO_SYNC=1;
         e "[OK] [${user}] [+] Teaching user HAM from ${1}";
