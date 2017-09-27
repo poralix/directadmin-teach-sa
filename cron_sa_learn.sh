@@ -96,28 +96,48 @@ function get_users_list()
 
 function teach_user_spam()
 {
-    e "[OK] [${user}] [+] Teaching user SPAM from ${1}";
-    e "[OK] [${user}] [+] `${SUDO} -u ${user} /usr/bin/sa-learn --no-sync --spam  ${1}/{cur,new}`";
-
-    if [ "${DELETE_TEACH_DATA}" == "1" ];
-    then
+    if [ -n "$(find ${1}/{new,cur}/* -type f 2>/dev/null)" ]; then
     {
-        e "[OK] [${user}] [+] Removing emails from ${1}";
-        rm -f ${USER_SPAM_FOLDER}/new/* ${USER_SPAM_FOLDER}/cur/* >/dev/null 2>&1;
+        local loc_res=`${SUDO} -u ${user} /usr/bin/sa-learn --no-sync --spam  ${1}/{cur,new}`;
+        DO_SYNC=1;
+        e "[OK] [${user}] [+] Teaching user SPAM from ${1}";
+        e "[OK] [${user}] [+] ${loc_res}";
+
+        if [ "${DELETE_TEACH_DATA}" == "1" ];
+        then
+        {
+            e "[OK] [${user}] [+] Removing emails from ${1}";
+            rm -f ${USER_SPAM_FOLDER}/new/* ${USER_SPAM_FOLDER}/cur/* >/dev/null 2>&1;
+        }
+        fi;
+    }
+    else
+    {
+        e "[OK] [${user}] [-] No emails found under ${1}, skipping learning spam";
     }
     fi;
 }
 
 function teach_user_ham()
 {
-    e "[OK] [${user}] [+] Teaching user HAM from ${1}";
-    e "[OK] [${user}] [+] `${SUDO} -u ${user} /usr/bin/sa-learn --no-sync --ham  ${1}/{cur,new}`";
-
-    if [ "${DELETE_TEACH_DATA}" == "1" ];
-    then
+    if [ -n "$(find ${1}/{new,cur}/* -type f 2>/dev/null)" ]; then
     {
-        e "[OK] [${user}] [+] Removing emails from ${1}";
-        rm -f ${USER_HAM_FOLDER}/new/* ${USER_HAM_FOLDER}/cur/* >/dev/null 2>&1;
+        local loc_res=`${SUDO} -u ${user} /usr/bin/sa-learn --no-sync --ham  ${1}/{cur,new}`;
+        DO_SYNC=1;
+        e "[OK] [${user}] [+] Teaching user HAM from ${1}";
+        e "[OK] [${user}] [+] ${loc_res}";
+
+        if [ "${DELETE_TEACH_DATA}" == "1" ];
+        then
+        {
+            e "[OK] [${user}] [+] Removing emails from ${1}";
+            rm -f ${USER_HAM_FOLDER}/new/* ${USER_HAM_FOLDER}/cur/* >/dev/null 2>&1;
+        }
+        fi;
+    }
+    else
+    {
+        e "[OK] [${user}] [-] No emails found under ${1}, skipping learning ham";
     }
     fi;
 }
@@ -139,14 +159,12 @@ function process_maildir()
         if [ -d "${USER_HAM_FOLDER}/new" ] || [ -d "${USER_HAM_FOLDER}/cur" ]; then teach_user_ham "${USER_HAM_FOLDER}"; fi;
     }
     fi;
-
-    ${SUDO} -u ${user} /usr/bin/sa-learn --sync;
-    ${SUDO} -u ${user} /usr/bin/sa-learn --dump magic;
 }
 
 function process_user()
 {
     USER_HOME="/home/${user}";
+    DO_SYNC=0;
 
     # Processing system mail account for an user
     if [ -d "${USER_HOME}/Maildir" ]; then
@@ -177,7 +195,21 @@ function process_user()
         }
         done;
     }
-    done;
+    fi;
+
+    # Run once per user, instead of once per email box
+    if [ "${DO_SYNC}" == "1" ]; then
+    {
+        e "[OK] [${user}] Synchronizing the database and the journal";
+        # Synchronize the database and the journal if needed
+        ${SUDO} -u ${user} /usr/bin/sa-learn --sync;
+        ${SUDO} -u ${user} /usr/bin/sa-learn --dump magic;
+    }
+    else
+    {
+        e "[OK] [${user}] [-] Nothing to synchronize yet";
+    }
+    fi;
 }
 
 user=`whoami`
@@ -192,9 +224,10 @@ if [ "${USER_ID}" == "0" ]; then
     for user in `echo ${users}`;
     do
     {
-        e "[OK] Running for user ${user}";
+        e "[OK] [${user}] Running for user ${user}";
         process_user;
         #${SUDO} -u ${user} id;
+        e "[OK] [${user}] Finished with user ${user}";
     }
     done;
 }
