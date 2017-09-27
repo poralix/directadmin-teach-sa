@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #######################################################################################
 ##
-## Written by Alex S Grebenschikov (zEitEr) $ Mon Sep 26 18:34:51 +07 2016
+## Written by Alex S Grebenschikov (zEitEr) $ Wed Sep 27 16:52:01 +07 2017
 ## www: http://www.poralix.com/
 ## email: support@poralix.com
-## Version: 0.3 (beta), Mon Sep 25 01:07:32 +07 2017
+## Version: 0.4 (beta), Wed Sep 27 16:52:01 +07 2017
 ##
 #######################################################################################
 ##
