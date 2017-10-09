@@ -3,8 +3,8 @@
 ##
 ## Written by Alex S Grebenschikov (zEitEr) $ Wed Sep 27 16:52:01 +07 2017
 ## www: http://www.poralix.com/
-## email: support@poralix.com
-## Version: 0.4 (beta), Wed Sep 27 16:52:01 +07 2017
+## Report bugs and issues: https://github.com/poralix/directadmin-teach-sa/issues
+## Version: 0.5 (beta), Tue Oct 10 02:59:54 +07 2017
 ##
 #######################################################################################
 ##
@@ -45,7 +45,11 @@
 ##
 #######################################################################################
 
-DELETE_TEACH_DATA="0";
+DELETE_TEACH_DATA="0";             # deprecated
+DELETE_TEACH_SPAM_DATA="0";        # clean spam data
+DELETE_TEACH_HAM_DATA="0";         # clean ham data
+MARK_AS_READ_TEACH_SPAM_DATA="0";  # mark as read spam data
+MARK_AS_READ_TEACH_HAM_DATA="0";   # mark as read ham data
 TEACH_SPAM_FOLDER="INBOX.teach-isspam";
 TEACH_HAM_FOLDER="INBOX.teach-isnotspam";
 
@@ -83,13 +87,21 @@ function usage()
 
 function show_options()
 {
-    echo "";
-    echo "TEACH SPAM FOLDER: ${TEACH_SPAM_FOLDER}";
-    echo "TEACH NOT SPAM FOLDER: ${TEACH_HAM_FOLDER}";
-    echo "DELETE TEACH DATA: ${DELETE_TEACH_DATA}";
-    echo "";
-    echo "The settings can be re-defined in `dirname $0`/settings.cnf";
-    echo "";
+    echo "
+    # SPAM:
+    TEACH SPAM FOLDER: ${TEACH_SPAM_FOLDER}
+    DELETE TEACH SPAM DATA: ${DELETE_TEACH_SPAM_DATA}
+    MARK AS READ SPAM DATA: ${MARK_AS_READ_TEACH_SPAM_DATA}
+
+    # NOT SPAM:
+    TEACH NOT SPAM FOLDER: ${TEACH_HAM_FOLDER}
+    DELETE TEACH NOT SPAM DATA: ${DELETE_TEACH_HAM_DATA}
+    MARK AS READ NOT SPAM DATA: ${MARK_AS_READ_TEACH_HAM_DATA}
+
+    # IMPORTANT:
+    The settings can be re-defined in `dirname $0`/settings.cnf
+    Report bugs and issues here: https://github.com/poralix/directadmin-teach-sa/issues
+    ";
     exit 1;
 }
 

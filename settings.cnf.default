@@ -2,8 +2,8 @@
 ##
 ## Written by Alex S Grebenschikov (zEitEr) $ Wed Sep 27 16:52:01 +07 2017
 ## www: http://www.poralix.com/
-## email: support@poralix.com
-## Version: 0.4 (beta), Wed Sep 27 16:52:01 +07 2017
+## Report bugs and issues: https://github.com/poralix/directadmin-teach-sa/issues
+## Version: 0.5 (beta), Tue Oct 10 02:59:54 +07 2017
 ##
 #######################################################################################
 ##
@@ -37,5 +37,16 @@ TEACH_SPAM_FOLDER="INBOX.teach-isspam";
 # TEACH NOT SPAM FOLDER
 TEACH_HAM_FOLDER="INBOX.teach-isnotspam";
 
-# TO DELETE OR NOT EMAIL AFTER TEACHING
-DELETE_TEACH_DATA="0";
+# TO DELETE OR NOT EMAIL AFTER TEACHING SPAM
+DELETE_TEACH_SPAM_DATA="0";
+
+# TO DELETE OR NOT EMAIL AFTER TEACHING NOT SPAM
+DELETE_TEACH_HAM_DATA="0";
+
+# TO MARK AS READ OR NOT EMAIL AFTER TEACHING SPAM
+# DELETE_TEACH_SPAM_DATA SHOULD BE SET TO 0
+MARK_AS_READ_TEACH_SPAM_DATA="0";
+
+# TO MARK AS READ OR NOT EMAIL AFTER TEACHING NOT SPAM
+# DELETE_TEACH_HAM_DATA SHOULD BE SET TO 0
+MARK_AS_READ_TEACH_HAM_DATA="0";

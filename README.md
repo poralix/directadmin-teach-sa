@@ -80,11 +80,38 @@ TEACH_SPAM_FOLDER="INBOX.teach-isspam";
 # TEACH NOT SPAM FOLDER
 TEACH_HAM_FOLDER="INBOX.teach-isnotspam";
 
-# TO DELETE OR NOT EMAIL AFTER TEACHING
-DELETE_TEACH_DATA="1";
+# TO DELETE OR NOT EMAIL AFTER TEACHING SPAM
+DELETE_TEACH_SPAM_DATA="0";
+
+# TO DELETE OR NOT EMAIL AFTER TEACHING NOT SPAM
+DELETE_TEACH_HAM_DATA="0";
+
+# TO MARK AS READ OR NOT EMAIL AFTER TEACHING SPAM
+# DELETE_TEACH_SPAM_DATA SHOULD BE SET TO 0
+MARK_AS_READ_TEACH_SPAM_DATA="1";
+
+# TO MARK AS READ OR NOT EMAIL AFTER TEACHING NOT SPAM
+# DELETE_TEACH_HAM_DATA SHOULD BE SET TO 0
+MARK_AS_READ_TEACH_HAM_DATA="1";
 ```
 
 IF IT'S REQUIRED YOU SHOULD UPDATE SETTINGS in settings.cnf
+
+# History
+
+**v.0.5:**
+
+- The setting DELETE_TEACH_DATA is deprecated since
+- Added DELETE_TEACH_SPAM_DATA to control cleaning from SPAM folder
+- Added DELETE_TEACH_HAM_DATA to control cleaning from HAM folder
+- Added MARK_AS_READ_TEACH_SPAM_DATA to mark or not as read emails in SPAM folder
+- Added MARK_AS_READ_TEACH_HAM_DATA to mark or not as read emails in HAM folder
+
+# Thanks to
+
+- John from Directadmin for basic script on help.directadmin.com
+- User _jobhh_ https://github.com/jobhh for posting issues
+- Andrew Oakley www.aoakley.com for markallread script
 
 # License and Copyright
 

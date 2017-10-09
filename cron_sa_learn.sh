@@ -3,8 +3,8 @@
 ##
 ## Written by Alex S Grebenschikov (zEitEr) $ Wed Sep 27 16:52:01 +07 2017
 ## www: http://www.poralix.com/
-## email: support@poralix.com
-## Version: 0.4 (beta), Wed Sep 27 16:52:01 +07 2017
+## Report bugs and issues: https://github.com/poralix/directadmin-teach-sa/issues
+## Version: 0.5 (beta), Tue Oct 10 02:59:54 +07 2017
 ##
 #######################################################################################
 ##
@@ -46,7 +46,11 @@
 ##
 #######################################################################################
 
-DELETE_TEACH_DATA="0";
+DELETE_TEACH_DATA="0";             # deprecated
+DELETE_TEACH_SPAM_DATA="0";        # clean spam data
+DELETE_TEACH_HAM_DATA="0";         # clean ham data
+MARK_AS_READ_TEACH_SPAM_DATA="0";  # mark as read spam data
+MARK_AS_READ_TEACH_HAM_DATA="0";   # mark as read ham data
 TEACH_SPAM_FOLDER="INBOX.teach-isspam";
 TEACH_HAM_FOLDER="INBOX.teach-isnotspam";
 
@@ -100,15 +104,19 @@ function teach_user_spam()
     {
         e "[OK] [${user}] [+] Found some emails under ${1}, now learning spam";
         local loc_res=`${SUDO} -u ${user} /usr/bin/sa-learn --no-sync --spam  ${1}/{cur,new}`;
-        DO_SYNC=1;
+        local loc_notlearned=`echo "${loc_res}" | grep "from 0 message" -c`;
+        [ "${loc_notlearned}" == "1" ] || DO_SYNC=1;
         e "[OK] [${user}] [+] Teaching user SPAM from ${1}";
         e "[OK] [${user}] [+] ${loc_res}";
 
-        if [ "${DELETE_TEACH_DATA}" == "1" ];
-        then
+        if [ "${DELETE_TEACH_SPAM_DATA}" == "1" ]; then
         {
             e "[OK] [${user}] [+] Removing emails from ${1}";
             rm -f ${USER_SPAM_FOLDER}/new/* ${USER_SPAM_FOLDER}/cur/* >/dev/null 2>&1;
+        }
+        elif [ "${MARK_AS_READ_TEACH_SPAM_DATA}" == "1" ]; then
+        {
+            markallread "${1}";
         }
         fi;
     }
@@ -125,15 +133,19 @@ function teach_user_ham()
     {
         e "[OK] [${user}] [+] Found some emails under ${1}, now learning ham";
         local loc_res=`${SUDO} -u ${user} /usr/bin/sa-learn --no-sync --ham  ${1}/{cur,new}`;
-        DO_SYNC=1;
+        local loc_notlearned=`echo "${loc_res}" | grep "from 0 message" -c`;
+        [ "${loc_notlearned}" == "1" ] || DO_SYNC=1;
         e "[OK] [${user}] [+] Teaching user HAM from ${1}";
         e "[OK] [${user}] [+] ${loc_res}";
 
-        if [ "${DELETE_TEACH_DATA}" == "1" ];
-        then
+        if [ "${DELETE_TEACH_HAM_DATA}" == "1" ]; then
         {
             e "[OK] [${user}] [+] Removing emails from ${1}";
             rm -f ${USER_HAM_FOLDER}/new/* ${USER_HAM_FOLDER}/cur/* >/dev/null 2>&1;
+        }
+        elif [ "${MARK_AS_READ_TEACH_HAM_DATA}" == "1" ]; then
+        {
+            markallread "${1}";
         }
         fi;
     }
@@ -142,6 +154,23 @@ function teach_user_ham()
         e "[OK] [${user}] [-] No emails found under ${1}, skipping learning ham";
     }
     fi;
+}
+
+function markallread()
+{
+    e "[OK] [${user}] [+] Marking emails as read in ${1}/new/";
+    for email in `ls -1 ${1}/new/* 2>/dev/null`;
+    do
+        # Move from /new/ to /cur/
+        # Also add status "seen" to message by appending :2,S to filename
+        mv ${email} `echo ${email} | sed -r "s/^(.*)\/new\/(.*)$/\1\/cur\/\2:2,S/"`;
+    done;
+    e "[OK] [${user}] [+] Marking emails as read in ${1}/cur/";
+    for email in `ls -1 ${1}/cur/*:2, ${1}/cur/*:2,b 2>/dev/null`;
+    do
+        # Add status "seen" to message by appending S to filename
+        mv ${email} `echo ${email} | sed -r "s/^(.*)$/\1S/"`;
+    done;
 }
 
 function process_maildir()
@@ -217,6 +246,11 @@ function process_user()
 user=`whoami`
 e "[OK] Started!";
 e "[INFO] Running $0 as user ${user}";
+e "[INFO] DELETE_TEACH_SPAM_DATA=${DELETE_TEACH_SPAM_DATA}";
+e "[INFO] DELETE_TEACH_HAM_DATA=${DELETE_TEACH_HAM_DATA}";
+e "[INFO] MARK_AS_READ_TEACH_SPAM_DATA=${MARK_AS_READ_TEACH_SPAM_DATA}";
+e "[INFO] MARK_AS_READ_TEACH_HAM_DATA=${MARK_AS_READ_TEACH_HAM_DATA}";
+
 check_sudo_exists;
 check_sudo_user;
 
