@@ -4,7 +4,7 @@
 ## Written by Alex S Grebenschikov (zEitEr) $ Wed Sep 27 16:52:01 +07 2017
 ## www: http://www.poralix.com/
 ## Report bugs and issues: https://github.com/poralix/directadmin-teach-sa/issues
-## Version: 0.5 (beta), Tue Oct 10 02:59:54 +07 2017
+## Version: 0.6 (beta), Sun Nov 12 15:39:12 +07 2017
 ##
 #######################################################################################
 ##
@@ -196,6 +196,7 @@ function process_user()
 {
     USER_HOME="/home/${user}";
     DO_SYNC=0;
+    cd "${USER_HOME}" || e "[ERROR] Failed to change directory to ${USER_HOME}";
 
     # Processing system mail account for an user
     if [ -d "${USER_HOME}/Maildir" ]; then
