@@ -54,6 +54,8 @@ MARK_AS_READ_TEACH_HAM_DATA="0";   # mark as read ham data
 TEACH_SPAM_FOLDER="INBOX.teach-isspam";
 TEACH_HAM_FOLDER="INBOX.teach-isnotspam";
 
+VERSION="0.7 (beta)";
+
 SETTINGS_FILE="`dirname $0`/settings.cnf";
 if [ -f "${SETTINGS_FILE}" ]; then . ${SETTINGS_FILE}; fi;
 
@@ -105,9 +107,10 @@ function get_users_list()
 
 function teach_user_spam()
 {
-    if [ -n "$(find ${1}/{new,cur}/* -type f 2>/dev/null)" ]; then
+    local loc_found="$(find ${1}/{new,cur}/* -type f 2>/dev/null | wc -l)"
+    if [ "${loc_found}" -ne 0 ]; then
     {
-        e "[OK] [${user}] [+] Found some emails under ${1}, now learning spam";
+        e "[OK] [${user}] [+] Found ${loc_found} emails under ${1}, now learning spam";
         local loc_res=`${SUDO} -u ${user} /usr/bin/sa-learn --no-sync --spam  ${1}/{cur,new}`;
         local loc_notlearned=`echo "${loc_res}" | grep "from 0 message" -c`;
         [ "${loc_notlearned}" == "1" ] || DO_SYNC=1;
@@ -138,9 +141,10 @@ function teach_user_spam()
 
 function teach_user_ham()
 {
-    if [ -n "$(find ${1}/{new,cur}/* -type f 2>/dev/null)" ]; then
+    local loc_found="$(find ${1}/{new,cur}/* -type f 2>/dev/null | wc -l)"
+    if [ "${loc_found}" -ne 0 ]; then
     {
-        e "[OK] [${user}] [+] Found some emails under ${1}, now learning ham";
+        e "[OK] [${user}] [+] Found ${loc_found} emails under ${1}, now learning ham";
         local loc_res=`${SUDO} -u ${user} /usr/bin/sa-learn --no-sync --ham  ${1}/{cur,new}`;
         local loc_notlearned=`echo "${loc_res}" | grep "from 0 message" -c`;
         [ "${loc_notlearned}" == "1" ] || DO_SYNC=1;
@@ -171,19 +175,34 @@ function teach_user_ham()
 
 function markallread()
 {
-    e "[OK] [${user}] [+] Marking emails as read in ${1}/new/";
-    for email in `ls -1 ${1}/new/* 2>/dev/null`;
-    do
-        # Move from /new/ to /cur/
-        # Also add status "seen" to message by appending :2,S to filename
-        mv ${VERBOSE} ${email} `echo ${email} | sed -r "s/^(.*)\/new\/(.*)$/\1\/cur\/\2:2,S/"`;
-    done;
-    e "[OK] [${user}] [+] Marking emails as read in ${1}/cur/";
-    for email in `ls -1 ${1}/cur/*:2, ${1}/cur/*:2,b 2>/dev/null`;
-    do
-        # Add status "seen" to message by appending S to filename
-        mv ${VERBOSE} ${email} `echo ${email} | sed -r "s/^(.*)$/\1S/"`;
-    done;
+    if cd "${1}/new"; 
+    then
+        de "[OK] [${user}] [DEBUG] Directory changed to ${1}/new";
+        e "[OK] [${user}] [+] Going to mark emails as read in ${1}/new/";
+        for email in `ls -1 ./* 2>/dev/null`;
+        do
+            # Move from /new/ to /cur/
+            # Also add status "seen" to message by appending :2,S to filename
+            de "[OK] [${user}] [DEBUG] Marking email ${email} as read now:";
+            mv ${VERBOSE} "${email}" "`echo ${email} | sed -r 's/^(.*)\/new\/(.*)$/\1\/cur\/\2:2,S/'`";
+        done;
+    else
+        e "[ERROR] Failed to change diretory to ${1}/new. Skipping marking emails as read.";
+    fi;
+
+    if cd "${1}/cur";
+    then
+        de "[OK] [${user}] [DEBUG] Directory changed to ${1}/cur";
+        e "[OK] [${user}] [+] Going to mark emails as read in ${1}/cur";
+        for email in `ls -1 ./*:2, ./*:2,b 2>/dev/null`;
+        do
+            # Add status "seen" to message by appending S to filename
+            de "[OK] [${user}] [DEBUG] Marking email ${email} as read now:";
+            mv ${VERBOSE} "${email}" "`echo ${email} | sed -r 's/^(.*)$/\1S/'`";
+        done;
+    else
+        e "[ERROR] Failed to change diretory to ${1}/cur. Skipping marking emails as read.";
+    fi;
 }
 
 function process_maildir()
@@ -258,7 +277,7 @@ function process_user()
 }
 
 user=`whoami`
-e "[OK] Started!";
+e "[OK] Started ${VERSION}!";
 e "[INFO] Running $0 as user ${user}";
 e "[INFO] DELETE_TEACH_SPAM_DATA=${DELETE_TEACH_SPAM_DATA}";
 e "[INFO] DELETE_TEACH_HAM_DATA=${DELETE_TEACH_HAM_DATA}";
@@ -299,6 +318,6 @@ else
     process_user;
 }
 fi;
-e "[OK] Finished!";
+e "[OK] Finished ${VERSION}!";
 
 exit 0;
