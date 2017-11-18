@@ -4,7 +4,7 @@
 ## Written by Alex S Grebenschikov (zEitEr) $ Wed Sep 27 16:52:01 +07 2017
 ## www: http://www.poralix.com/
 ## Report bugs and issues: https://github.com/poralix/directadmin-teach-sa/issues
-## Version: 0.6 (beta), Sun Nov 12 15:39:12 +07 2017
+## Version: 0.7 (beta), Sat Nov 18 11:57:31 +07 2017
 ##
 #######################################################################################
 ##
@@ -64,6 +64,11 @@ function e()
     echo "[$(date)] $@";
 }
 
+function de()
+{
+    [ "${DEBUG}" == "1" ] && echo "[$(date)] $@";
+}
+
 function check_sudo_exists()
 {
     SUDO="/usr/local/bin/sudo";
@@ -112,7 +117,11 @@ function teach_user_spam()
         if [ "${DELETE_TEACH_SPAM_DATA}" == "1" ]; then
         {
             e "[OK] [${user}] [+] Removing emails from ${1}";
-            rm -f ${USER_SPAM_FOLDER}/new/* ${USER_SPAM_FOLDER}/cur/* >/dev/null 2>&1;
+            if [ "${DEBUG}" == "1" ]; then
+                rm -v -f ${USER_SPAM_FOLDER}/new/* ${USER_SPAM_FOLDER}/cur/* 2>&1;
+            else
+                rm -f ${USER_SPAM_FOLDER}/new/* ${USER_SPAM_FOLDER}/cur/* >/dev/null 2>&1;
+            fi;
         }
         elif [ "${MARK_AS_READ_TEACH_SPAM_DATA}" == "1" ]; then
         {
@@ -141,7 +150,11 @@ function teach_user_ham()
         if [ "${DELETE_TEACH_HAM_DATA}" == "1" ]; then
         {
             e "[OK] [${user}] [+] Removing emails from ${1}";
-            rm -f ${USER_HAM_FOLDER}/new/* ${USER_HAM_FOLDER}/cur/* >/dev/null 2>&1;
+            if [ "${DEBUG}" == "1" ]; then
+                rm -v -f ${USER_HAM_FOLDER}/new/* ${USER_HAM_FOLDER}/cur/* 2>&1;
+            else
+                rm -f ${USER_HAM_FOLDER}/new/* ${USER_HAM_FOLDER}/cur/* >/dev/null 2>&1;
+            fi;
         }
         elif [ "${MARK_AS_READ_TEACH_HAM_DATA}" == "1" ]; then
         {
@@ -163,13 +176,13 @@ function markallread()
     do
         # Move from /new/ to /cur/
         # Also add status "seen" to message by appending :2,S to filename
-        mv ${email} `echo ${email} | sed -r "s/^(.*)\/new\/(.*)$/\1\/cur\/\2:2,S/"`;
+        mv ${VERBOSE} ${email} `echo ${email} | sed -r "s/^(.*)\/new\/(.*)$/\1\/cur\/\2:2,S/"`;
     done;
     e "[OK] [${user}] [+] Marking emails as read in ${1}/cur/";
     for email in `ls -1 ${1}/cur/*:2, ${1}/cur/*:2,b 2>/dev/null`;
     do
         # Add status "seen" to message by appending S to filename
-        mv ${email} `echo ${email} | sed -r "s/^(.*)$/\1S/"`;
+        mv ${VERBOSE} ${email} `echo ${email} | sed -r "s/^(.*)$/\1S/"`;
     done;
 }
 
@@ -254,6 +267,18 @@ e "[INFO] MARK_AS_READ_TEACH_HAM_DATA=${MARK_AS_READ_TEACH_HAM_DATA}";
 
 check_sudo_exists;
 check_sudo_user;
+
+case "${1}" in
+    debug|-debug|--debug)
+        DEBUG=1;
+        VERBOSE="-v";
+        e "[INFO] Enabling DEBUG mode";
+    ;;
+    *)
+        DEBUG=0;
+        VERBOSE="";
+    ;;
+esac;
 
 if [ "${USER_ID}" == "0" ]; then
 {

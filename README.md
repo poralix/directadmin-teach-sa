@@ -99,6 +99,14 @@ IF IT'S REQUIRED YOU SHOULD UPDATE SETTINGS in settings.cnf
 
 # History
 
+**v0.7:**
+
+- Debug mode added
+
+**v0.6:**
+
+- Fix for Perl 5.24.x applied: https://github.com/poralix/directadmin-teach-sa/issues/3
+
 **v.0.5:**
 
 - The setting DELETE_TEACH_DATA is deprecated since
