@@ -110,7 +110,7 @@ function teach_user_spam()
     local loc_found="$(find ${1}/{new,cur}/* -type f 2>/dev/null | wc -l)"
     if [ "${loc_found}" -ne 0 ]; then
     {
-        e "[OK] [${user}] [+] Found ${loc_found} emails under ${1}, now learning spam";
+        e "[OK] [${user}] [+] Found ${loc_found} emails under ${1}, now going to learn spam";
         local loc_res=`${SUDO} -u ${user} /usr/bin/sa-learn --no-sync --spam  ${1}/{cur,new}`;
         local loc_notlearned=`echo "${loc_res}" | grep "from 0 message" -c`;
         [ "${loc_notlearned}" == "1" ] || DO_SYNC=1;
@@ -144,7 +144,7 @@ function teach_user_ham()
     local loc_found="$(find ${1}/{new,cur}/* -type f 2>/dev/null | wc -l)"
     if [ "${loc_found}" -ne 0 ]; then
     {
-        e "[OK] [${user}] [+] Found ${loc_found} emails under ${1}, now learning ham";
+        e "[OK] [${user}] [+] Found ${loc_found} emails under ${1}, now going to learn ham";
         local loc_res=`${SUDO} -u ${user} /usr/bin/sa-learn --no-sync --ham  ${1}/{cur,new}`;
         local loc_notlearned=`echo "${loc_res}" | grep "from 0 message" -c`;
         [ "${loc_notlearned}" == "1" ] || DO_SYNC=1;
@@ -184,7 +184,7 @@ function markallread()
             # Move from /new/ to /cur/
             # Also add status "seen" to message by appending :2,S to filename
             de "[OK] [${user}] [DEBUG] Marking email ${email} as read now:";
-            mv ${VERBOSE} "${email}" "`echo ${email} | sed -r 's/^(.*)\/new\/(.*)$/\1\/cur\/\2:2,S/'`";
+            mv ${VERBOSE} "${email}" "`echo ${email} | sed -r 's/^.\/(.*)$/..\/cur\/\1:2,S/'`";
         done;
     else
         e "[ERROR] Failed to change diretory to ${1}/new. Skipping marking emails as read.";
@@ -194,7 +194,7 @@ function markallread()
     then
         de "[OK] [${user}] [DEBUG] Directory changed to ${1}/cur";
         e "[OK] [${user}] [+] Going to mark emails as read in ${1}/cur";
-        for email in `ls -1 ./*:2, ./*:2,b 2>/dev/null`;
+        for email in `ls -1 ./ -I "*:2,*S*" 2>/dev/null`;
         do
             # Add status "seen" to message by appending S to filename
             de "[OK] [${user}] [DEBUG] Marking email ${email} as read now:";
