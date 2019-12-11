@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 #######################################################################################
 ##
-## Written by Alex S Grebenschikov (zEitEr) $ Wed Sep 27 16:52:01 +07 2017
-## www: http://www.poralix.com/
+## Written by Alex Grebenschikov (zEitEr) $ Wed Sep 27 16:52:01 +07 2017
+## Supported by: Poralix, www.poralix.com
 ## Report bugs and issues: https://github.com/poralix/directadmin-teach-sa/issues
-## Version: 0.7 (beta), Sat Nov 18 11:57:31 +07 2017
+## Version: 0.8 (beta), Wed Dec 11 23:36:02 +07 2019
+##          0.7 (beta), Sat Nov 18 11:57:31 +07 2017
 ##
 #######################################################################################
 ##
@@ -16,7 +17,7 @@
 ##
 ## MIT License
 ##
-## Copyright (c) 2016-2017 Alex S Grebenschikov (www.poralix.com)
+## Copyright (c) 2016-2019 Alex S Grebenschikov (www.poralix.com)
 ##
 ## Permission is hereby granted, free of charge, to any person obtaining a copy
 ## of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +55,7 @@ MARK_AS_READ_TEACH_HAM_DATA="0";   # mark as read ham data
 TEACH_SPAM_FOLDER="INBOX.teach-isspam";
 TEACH_HAM_FOLDER="INBOX.teach-isnotspam";
 
-VERSION="0.7 (beta)";
+VERSION="0.8 (beta)";
 
 SETTINGS_FILE="`dirname $0`/settings.cnf";
 if [ -f "${SETTINGS_FILE}" ]; then . ${SETTINGS_FILE}; fi;
@@ -107,7 +108,7 @@ function get_users_list()
 
 function teach_user_spam()
 {
-    local loc_found="$(find ${1}/{new,cur}/* -type f 2>/dev/null | wc -l)"
+    local loc_found="$(find ${1}/{new,cur}/ -type f 2>/dev/null | wc -l)"
     if [ "${loc_found}" -ne 0 ]; then
     {
         e "[OK] [${user}] [+] Found ${loc_found} emails under ${1}, now going to learn spam";
@@ -121,9 +122,9 @@ function teach_user_spam()
         {
             e "[OK] [${user}] [+] Removing emails from ${1}";
             if [ "${DEBUG}" == "1" ]; then
-                rm -v -f ${USER_SPAM_FOLDER}/new/* ${USER_SPAM_FOLDER}/cur/* 2>&1;
+                find ${1}/{new,cur}/ -type f -exec rm -f -v {} \;
             else
-                rm -f ${USER_SPAM_FOLDER}/new/* ${USER_SPAM_FOLDER}/cur/* >/dev/null 2>&1;
+                find ${1}/{new,cur}/ -type f -exec rm -f {} \;
             fi;
         }
         elif [ "${MARK_AS_READ_TEACH_SPAM_DATA}" == "1" ]; then
@@ -141,7 +142,7 @@ function teach_user_spam()
 
 function teach_user_ham()
 {
-    local loc_found="$(find ${1}/{new,cur}/* -type f 2>/dev/null | wc -l)"
+    local loc_found="$(find ${1}/{new,cur}/ -type f 2>/dev/null | wc -l)"
     if [ "${loc_found}" -ne 0 ]; then
     {
         e "[OK] [${user}] [+] Found ${loc_found} emails under ${1}, now going to learn ham";
@@ -155,9 +156,9 @@ function teach_user_ham()
         {
             e "[OK] [${user}] [+] Removing emails from ${1}";
             if [ "${DEBUG}" == "1" ]; then
-                rm -v -f ${USER_HAM_FOLDER}/new/* ${USER_HAM_FOLDER}/cur/* 2>&1;
+                find ${1}/{new,cur}/ -type f -exec rm -f -v {} \;
             else
-                rm -f ${USER_HAM_FOLDER}/new/* ${USER_HAM_FOLDER}/cur/* >/dev/null 2>&1;
+                find ${1}/{new,cur}/ -type f -exec rm -f {} \;
             fi;
         }
         elif [ "${MARK_AS_READ_TEACH_HAM_DATA}" == "1" ]; then

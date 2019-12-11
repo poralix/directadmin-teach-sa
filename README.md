@@ -99,6 +99,10 @@ IF IT'S REQUIRED YOU SHOULD UPDATE SETTINGS in settings.cnf
 
 # History
 
+**v0.8:**
+
+- Fixed "too many arguments" error
+
 **v0.7:**
 
 - Debug mode added
@@ -123,7 +127,7 @@ IF IT'S REQUIRED YOU SHOULD UPDATE SETTINGS in settings.cnf
 
 # License and Copyright
 
-Copyright (c) 2016-2017 Alex S Grebenschikov (www.poralix.com)
+Copyright (c) 2016-2019 Alex S Grebenschikov (www.poralix.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
