@@ -99,6 +99,10 @@ IF IT'S REQUIRED YOU SHOULD UPDATE SETTINGS in settings.cnf
 
 # History
 
+**v0.9:**
+
+- Script failed to start, if no user `admin` exists on a server - FIXED
+
 **v0.8:**
 
 - Fixed "too many arguments" error
