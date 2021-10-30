@@ -126,7 +126,7 @@ function process_folder()
     }
     fi;
 
-    c=`grep ${loc_folder} ${loc_mdir}/subscriptions -c 2>/dev/null`
+    c=$(grep ${loc_folder} ${loc_mdir}/subscriptions -c 2>/dev/null);
     if [ "${c}" == "0" ]; then
     {
         e "[OK] [+] Updating subscriptions";
@@ -142,8 +142,8 @@ function process_folder()
 function process_mailbox()
 {
     email="${1}";
-    mailbox=`echo ${email} | cut -d\@ -f1`;
-    domain=`echo ${email} | cut -d\@ -f2`;
+    mailbox=$(echo ${email} | cut -d\@ -f1);
+    domain=$(echo ${email} | cut -d\@ -f2);
     e "[OK] Running for mailbox ${mailbox} on domain ${domain}";
     process_domain "${domain}" "${mailbox}";
 }
@@ -152,7 +152,7 @@ function process_domain()
 {
     domain="${1}";
     mailbox="${2}";
-    user=`grep ^${domain}: /etc/virtual/domainowners | cut -d\  -f2`;
+    user=$(grep ^${domain}: /etc/virtual/domainowners | cut -d\  -f2);
 
     if [ -z "${user}" ];
     then
@@ -204,7 +204,7 @@ function process_domain()
     }
     fi;
 
-    c=`wc -l "/etc/virtual/${domain}/passwd" | cut -d\  -f1`
+    c=$(wc -l "/etc/virtual/${domain}/passwd" | cut -d\  -f1);
 
     if [ "${c}" == "0" ]; 
     then
@@ -219,7 +219,7 @@ function process_domain()
     if [ -z "${mailbox}" ];
     then
     {
-        for box in `cat /etc/virtual/${domain}/passwd | cut -d\: -f1`;
+        for box in $(cat /etc/virtual/${domain}/passwd | cut -d\: -f1);
         do
         {
             create_folders;
@@ -228,7 +228,7 @@ function process_domain()
     }
     else
     {
-        box=`cat /etc/virtual/${domain}/passwd | grep "^${mailbox}:"|cut -d\: -f1`;
+        box=$(cat /etc/virtual/${domain}/passwd | grep "^${mailbox}:"|cut -d\: -f1);
         create_folders;
     }
     fi;
@@ -236,7 +236,7 @@ function process_domain()
 
 function process_all_domains()
 {
-    for domain in `cat /etc/virtual/domainowners | cut -d\: -f1 | sort | uniq`;
+    for domain in $(cat /etc/virtual/domainowners | cut -d\: -f1 | sort | uniq);
     do
     {
         process_domain "${domain}";
@@ -246,7 +246,7 @@ function process_all_domains()
 
 function create_folders()
 {
-    local mdir=`grep ^${box}: /etc/virtual/${domain}/passwd | cut -d\: -f6`;
+    local mdir=$(grep ^${box}: /etc/virtual/${domain}/passwd | cut -d\: -f6);
     if [ -n "${mdir}" ]; 
     then
     {
@@ -286,7 +286,7 @@ case $1 in
     ;;
     *)
         e "[OK] Program started"
-        c=`echo ${1} | grep -c '@'`;
+        c=$(echo ${1} | grep -c '@');
         if [ "${c}" == "0" ]; then process_domain "${1}";
         else process_mailbox "${1}"; fi;
         e "[OK] Program finished"
