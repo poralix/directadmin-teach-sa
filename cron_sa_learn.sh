@@ -4,7 +4,8 @@
 ## Written by Alex Grebenschikov (zEitEr) $ Wed Sep 27 16:52:01 +07 2017
 ## Supported by: Poralix, www.poralix.com
 ## Report bugs and issues: https://github.com/poralix/directadmin-teach-sa/issues
-## Version: 0.8 (beta), Wed Dec 11 23:36:02 +07 2019
+## Version: 0.9 (beta), Sat Oct 30 17:37:09 +07 2021
+##          0.8 (beta), Wed Dec 11 23:36:02 +07 2019
 ##          0.7 (beta), Sat Nov 18 11:57:31 +07 2017
 ##
 #######################################################################################
@@ -17,7 +18,7 @@
 ##
 ## MIT License
 ##
-## Copyright (c) 2016-2019 Alex S Grebenschikov (www.poralix.com)
+## Copyright (c) 2016-2021 Alex S Grebenschikov (www.poralix.com)
 ##
 ## Permission is hereby granted, free of charge, to any person obtaining a copy
 ## of this software and associated documentation files (the "Software"), to deal
@@ -55,12 +56,12 @@ MARK_AS_READ_TEACH_HAM_DATA="0";   # mark as read ham data
 TEACH_SPAM_FOLDER="INBOX.teach-isspam";
 TEACH_HAM_FOLDER="INBOX.teach-isnotspam";
 
-VERSION="0.8 (beta)";
+VERSION="0.9 (beta)";
 
 SETTINGS_FILE="`dirname $0`/settings.cnf";
 if [ -f "${SETTINGS_FILE}" ]; then . ${SETTINGS_FILE}; fi;
 
-USER_ID=`id -u`;
+USER_ID=$(id -u);
 
 function e()
 {
@@ -91,8 +92,10 @@ function check_sudo_exists()
 
 function check_sudo_user()
 {
-    c=`sudo -u admin whoami 2>&1`
-    if [ "${c}" != "admin" ]; 
+    local loc_sudo_user;
+    loc_sudo_user=$(head -1 /usr/local/directadmin/data/admin/admin.list);
+    c=$(sudo -u "${loc_sudo_user}" whoami 2>&1);
+    if [ "${c}" != "${loc_sudo_user}" ] && [ -n "${loc_sudo_user}" ];
     then
     {
         e "[ERROR] Cannot sudo as an user! Terminating...";
@@ -112,8 +115,8 @@ function teach_user_spam()
     if [ "${loc_found}" -ne 0 ]; then
     {
         e "[OK] [${user}] [+] Found ${loc_found} emails under ${1}, now going to learn spam";
-        local loc_res=`${SUDO} -u ${user} /usr/bin/sa-learn --no-sync --spam  ${1}/{cur,new}`;
-        local loc_notlearned=`echo "${loc_res}" | grep "from 0 message" -c`;
+        local loc_res=$(${SUDO} -u ${user} /usr/bin/sa-learn --no-sync --spam  ${1}/{cur,new});
+        local loc_notlearned=$(echo "${loc_res}" | grep "from 0 message" -c);
         [ "${loc_notlearned}" == "1" ] || DO_SYNC=1;
         e "[OK] [${user}] [+] Teaching user SPAM from ${1}";
         e "[OK] [${user}] [+] ${loc_res}";
@@ -146,8 +149,8 @@ function teach_user_ham()
     if [ "${loc_found}" -ne 0 ]; then
     {
         e "[OK] [${user}] [+] Found ${loc_found} emails under ${1}, now going to learn ham";
-        local loc_res=`${SUDO} -u ${user} /usr/bin/sa-learn --no-sync --ham  ${1}/{cur,new}`;
-        local loc_notlearned=`echo "${loc_res}" | grep "from 0 message" -c`;
+        local loc_res=$(${SUDO} -u ${user} /usr/bin/sa-learn --no-sync --ham  ${1}/{cur,new});
+        local loc_notlearned=$(echo "${loc_res}" | grep "from 0 message" -c);
         [ "${loc_notlearned}" == "1" ] || DO_SYNC=1;
         e "[OK] [${user}] [+] Teaching user HAM from ${1}";
         e "[OK] [${user}] [+] ${loc_res}";
@@ -180,7 +183,7 @@ function markallread()
     then
         de "[OK] [${user}] [DEBUG] Directory changed to ${1}/new";
         e "[OK] [${user}] [+] Going to mark emails as read in ${1}/new/";
-        for email in `ls -1 ./* 2>/dev/null`;
+        for email in $(ls -1 ./* 2>/dev/null);
         do
             # Move from /new/ to /cur/
             # Also add status "seen" to message by appending :2,S to filename
@@ -195,7 +198,7 @@ function markallread()
     then
         de "[OK] [${user}] [DEBUG] Directory changed to ${1}/cur";
         e "[OK] [${user}] [+] Going to mark emails as read in ${1}/cur";
-        for email in `ls -1 ./ -I "*:2,*S*" 2>/dev/null`;
+        for email in $(ls -1 ./ -I "*:2,*S*" 2>/dev/null);
         do
             # Add status "seen" to message by appending S to filename
             de "[OK] [${user}] [DEBUG] Marking email ${email} as read now:";
@@ -242,7 +245,7 @@ function process_user()
     # Processing virtual mail accounts for user's domains
     if [ -d "${USER_HOME}/imap" ]; then
     {
-        for domain in `ls ${USER_HOME}/imap 2>/dev/null`;
+        for domain in $(ls ${USER_HOME}/imap 2>/dev/null);
         do
         {
             DOMAIN_DIR="${USER_HOME}/imap/${domain}";
@@ -250,7 +253,7 @@ function process_user()
 
             e "[OK] [${user}] [+] found domain ${domain} owned by ${user}";
 
-            for mdir in `ls -d ${DOMAIN_DIR}/*/Maildir 2>/dev/null`;
+            for mdir in $(ls -d ${DOMAIN_DIR}/*/Maildir 2>/dev/null);
             do
             {
                 e "[OK] [${user}] [+] found ${mdir}";
@@ -277,7 +280,7 @@ function process_user()
     fi;
 }
 
-user=`whoami`
+user=$(whoami);
 e "[OK] Started ${VERSION}!";
 e "[INFO] Running $0 as user ${user}";
 e "[INFO] DELETE_TEACH_SPAM_DATA=${DELETE_TEACH_SPAM_DATA}";
@@ -302,8 +305,8 @@ esac;
 
 if [ "${USER_ID}" == "0" ]; then
 {
-    users=`get_users_list`;
-    for user in `echo ${users}`;
+    users=$(get_users_list);
+    for user in ${users};
     do
     {
         e "[OK] [${user}] Running for user ${user}";
