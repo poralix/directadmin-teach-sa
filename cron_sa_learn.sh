@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #######################################################################################
 ##
-## Written by Alex Grebenschikov (zEitEr) $ Wed Sep 27 16:52:01 +07 2017
+## Written by Alex Grebenschikov (zEitEr)
 ## Supported by: Poralix, www.poralix.com
 ## Report bugs and issues: https://github.com/poralix/directadmin-teach-sa/issues
 ## Version: 0.9 (beta), Sat Oct 30 17:37:09 +07 2021
