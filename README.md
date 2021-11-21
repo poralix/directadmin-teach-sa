@@ -99,6 +99,10 @@ IF IT'S REQUIRED YOU SHOULD UPDATE SETTINGS in settings.cnf
 
 # History
 
+**v0.10**
+
+- A support for Rspamd added (beta)
+
 **v0.9:**
 
 - Script failed to start, if no user `admin` exists on a server - FIXED

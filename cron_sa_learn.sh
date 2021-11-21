@@ -4,7 +4,8 @@
 ## Written by Alex Grebenschikov (zEitEr)
 ## Supported by: Poralix, www.poralix.com
 ## Report bugs and issues: https://github.com/poralix/directadmin-teach-sa/issues
-## Version: 0.9 (beta), Sat Oct 30 17:37:09 +07 2021
+## Version: 0.10 (beta), Mon Nov 22 00:37:20 +07 2021
+##          0.9 (beta), Sat Oct 30 17:37:09 +07 2021
 ##          0.8 (beta), Wed Dec 11 23:36:02 +07 2019
 ##          0.7 (beta), Sat Nov 18 11:57:31 +07 2017
 ##
@@ -56,7 +57,7 @@ MARK_AS_READ_TEACH_HAM_DATA="0";   # mark as read ham data
 TEACH_SPAM_FOLDER="INBOX.teach-isspam";
 TEACH_HAM_FOLDER="INBOX.teach-isnotspam";
 
-VERSION="0.9 (beta)";
+VERSION="0.10 (beta)";
 
 SETTINGS_FILE="`dirname $0`/settings.cnf";
 if [ -f "${SETTINGS_FILE}" ]; then . ${SETTINGS_FILE}; fi;
@@ -112,12 +113,24 @@ function get_users_list()
 function teach_user_spam()
 {
     local loc_found="$(find ${1}/{new,cur}/ -type f 2>/dev/null | wc -l)"
+    local loc_res;
+    local loc_notlearned;
+
     if [ "${loc_found}" -ne 0 ]; then
     {
         e "[OK] [${user}] [+] Found ${loc_found} emails under ${1}, now going to learn spam";
-        local loc_res=$(${SUDO} -u ${user} /usr/bin/sa-learn --no-sync --spam  ${1}/{cur,new});
-        local loc_notlearned=$(echo "${loc_res}" | grep "from 0 message" -c);
-        [ "${loc_notlearned}" == "1" ] || DO_SYNC=1;
+        if [ "${IS_SPAMASSASSIN}" == "1" ]; then
+        {
+            loc_res=$(${SUDO} -u ${user} ${TEACH_BIN} --no-sync --spam ${1}/{cur,new});
+            loc_notlearned=$(echo "${loc_res}" | grep "from 0 message" -c);
+            [ "${loc_notlearned}" == "1" ] || DO_SYNC=1;
+        }
+        else
+        {
+            loc_res=$(${TEACH_BIN} -v --connect ${RSPAMD_SOCK} learn_spam ${1}/{cur,new});
+        }
+        fi;
+
         e "[OK] [${user}] [+] Teaching user SPAM from ${1}";
         e "[OK] [${user}] [+] ${loc_res}";
 
@@ -146,12 +159,24 @@ function teach_user_spam()
 function teach_user_ham()
 {
     local loc_found="$(find ${1}/{new,cur}/ -type f 2>/dev/null | wc -l)"
+    local loc_res;
+    local loc_notlearned;
+
     if [ "${loc_found}" -ne 0 ]; then
     {
         e "[OK] [${user}] [+] Found ${loc_found} emails under ${1}, now going to learn ham";
-        local loc_res=$(${SUDO} -u ${user} /usr/bin/sa-learn --no-sync --ham  ${1}/{cur,new});
-        local loc_notlearned=$(echo "${loc_res}" | grep "from 0 message" -c);
-        [ "${loc_notlearned}" == "1" ] || DO_SYNC=1;
+        if [ "${IS_SPAMASSASSIN}" == "1" ]; then
+        {
+            loc_res=$(${SUDO} -u ${user} ${TEACH_BIN} --no-sync --ham  ${1}/{cur,new});
+            loc_notlearned=$(echo "${loc_res}" | grep "from 0 message" -c);
+            [ "${loc_notlearned}" == "1" ] || DO_SYNC=1;
+        }
+        else
+        {
+            loc_res=$(${TEACH_BIN} -v --connect ${RSPAMD_SOCK} learn_ham ${1}/{cur,new});
+        }
+        fi;
+
         e "[OK] [${user}] [+] Teaching user HAM from ${1}";
         e "[OK] [${user}] [+] ${loc_res}";
 
@@ -265,17 +290,25 @@ function process_user()
     }
     fi;
 
-    # Run once per user, instead of once per email box
-    if [ "${DO_SYNC}" == "1" ]; then
+    if [ "${IS_SPAMASSASSIN}" == "1" ]; then
     {
-        e "[OK] [${user}] Synchronizing the database and the journal";
-        # Synchronize the database and the journal if needed
-        ${SUDO} -u ${user} /usr/bin/sa-learn --sync;
-        ${SUDO} -u ${user} /usr/bin/sa-learn --dump magic;
+        # Run once per user, instead of once per email box
+        if [ "${DO_SYNC}" == "1" ]; then
+        {
+            e "[OK] [${user}] Synchronizing the database and the journal";
+            # Synchronize the database and the journal if needed
+            ${SUDO} -u ${user} ${TEACH_BIN} --sync;
+            ${SUDO} -u ${user} ${TEACH_BIN} --dump magic;
+        }
+        else
+        {
+            e "[OK] [${user}] [-] Nothing to synchronize yet";
+        }
+        fi;
     }
     else
     {
-        e "[OK] [${user}] [-] Nothing to synchronize yet";
+        e "[INFO] No need to sync with Rspamd, yet";
     }
     fi;
 }
@@ -287,6 +320,53 @@ e "[INFO] DELETE_TEACH_SPAM_DATA=${DELETE_TEACH_SPAM_DATA}";
 e "[INFO] DELETE_TEACH_HAM_DATA=${DELETE_TEACH_HAM_DATA}";
 e "[INFO] MARK_AS_READ_TEACH_SPAM_DATA=${MARK_AS_READ_TEACH_SPAM_DATA}";
 e "[INFO] MARK_AS_READ_TEACH_HAM_DATA=${MARK_AS_READ_TEACH_HAM_DATA}";
+
+# WHAT OPTION DO WE HAVE IN DIRECTADMIN?
+SPAMD_OPTION=$(grep ^spamd= /usr/local/directadmin/custombuild/options.conf | cut -d= -f2);
+
+case "${SPAMD_OPTION}" in
+    rspamd)
+        e "[INFO] Rspamd is enabled in DirectAdmin options";
+        # IS RSPAMD INSTALLED AND RUNNING?
+        TEACH_BIN="/usr/local/bin/rspamc";
+        [ -f "${TEACH_BIN}" ] || TEACH_BIN="/usr/bin/rspamc";
+        [ -f "${TEACH_BIN}" ] || TEACH_BIN="/bin/rspamc";
+        if [ ! -f "${TEACH_BIN}" ]; then
+        {
+            TEACH_BIN="";
+            e "Rspamd is not installed on the server. Terminating...";
+            exit 100;
+        }
+        fi;
+        RSPAMD_SOCK="/var/run/rspamd/rspamd_controller.sock";
+        IS_RSPAMD=1;
+        IS_SPAMASSASSIN=0;
+    ;;
+    spamassassin)
+        e "[INFO] SpamAssassin is enabled in DirectAdmin options";
+        # IS SPAMASSASSIN INSTALLED AND RUNNING?
+        TEACH_BIN="/usr/local/bin/sa-learn";
+        [ -f "${TEACH_BIN}" ] || TEACH_BIN="/usr/bin/sa-learn";
+        [ -f "${TEACH_BIN}" ] || TEACH_BIN="/bin/sa-learn";
+        if [ ! -f "${TEACH_BIN}" ]; then
+        {
+            TEACH_BIN="";
+            e "SpamAssassin is not installed on the server. Terminating...";
+            exit 100;
+        }
+        fi;
+        RSPAMD_SOCK="";
+        IS_RSPAMD=0;
+        IS_SPAMASSASSIN=1;
+    ;;
+    no|*)
+        e "[ERROR] AntiSpam is disabled in DirectAdmin options. Terminating...";
+        # AntiSPAM not enabled?
+        TEACH_BIN="";
+        RSPAMD_SOCK="";
+        exit 1;
+    ;;
+esac;
 
 check_sudo_exists;
 check_sudo_user;
