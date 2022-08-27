@@ -99,6 +99,10 @@ IF IT'S REQUIRED YOU SHOULD UPDATE SETTINGS in settings.cnf
 
 # History
 
+**v0.11**
+
+- Get a homedir from /etc/passwd to support /home2, /home3, etc ... (beta)
+
 **v0.10**
 
 - A support for Rspamd added (beta)
@@ -135,7 +139,7 @@ IF IT'S REQUIRED YOU SHOULD UPDATE SETTINGS in settings.cnf
 
 # License and Copyright
 
-Copyright (c) 2016-2021 Alex S Grebenschikov (www.poralix.com)
+Copyright (c) 2016-2022 Alex S Grebenschikov (www.poralix.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

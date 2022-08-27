@@ -4,7 +4,7 @@
 ## Written by Alex S Grebenschikov (zEitEr)
 ## www: http://www.poralix.com/
 ## Report bugs and issues: https://github.com/poralix/directadmin-teach-sa/issues
-## Version: 0.10 (beta), Mon Nov 22 00:37:20 +07 2021
+## Version: 0.11 (beta), Sat Aug 27 17:15:08 +07 2022
 ##
 #######################################################################################
 ##
@@ -15,7 +15,7 @@
 ##
 ## MIT License
 ##
-## Copyright (c) 2016-2021 Alex S Grebenschikov (www.poralix.com)
+## Copyright (c) 2016-2022 Alex S Grebenschikov (www.poralix.com)
 ##
 ## Permission is hereby granted, free of charge, to any person obtaining a copy
 ## of this software and associated documentation files (the "Software"), to deal
@@ -64,6 +64,7 @@ function e()
 function usage()
 {
     echo "#############################################################################";
+    echo "#                                                                           #";
     echo "#   The script creates IMAP folders TEACH-SPAM and TEACH-ISNOTSPAM on per   #";
     echo "#   mailbox, domain bases or for all existing domains                       #";
     echo "#                                                                           #";
@@ -153,6 +154,7 @@ function process_domain()
     domain="${1}";
     mailbox="${2}";
     user=$(grep ^${domain}: /etc/virtual/domainowners | cut -d\  -f2);
+    homedir=$(grep -m1 "^${user}:" /etc/passwd | awk -F: '{print $6}');
 
     if [ -z "${user}" ];
     then
@@ -162,10 +164,10 @@ function process_domain()
     }
     fi;
 
-    e "[OK] Domain ${domain} owned by user ${user}";
+    e "[OK] Domain ${domain} owned by user ${user} with homedir ${homedir}";
 
     # Create folder for system mail account
-    if [ -d "/home/${user}/Maildir" ]; then
+    if [ -d "${homedir}/Maildir" ]; then
     {
         if [ -z "${mailbox}" ];
         then
@@ -173,10 +175,10 @@ function process_domain()
             e "[OK] Processing system mail account for user ${user} (i.e. ${user}@$(hostname))";
 
             # SPAM
-            if [ -n "${TEACH_SPAM_FOLDER}" ]; then process_folder "${TEACH_SPAM_FOLDER}" "/home/${user}/Maildir" >/dev/null; fi;
+            if [ -n "${TEACH_SPAM_FOLDER}" ]; then process_folder "${TEACH_SPAM_FOLDER}" "${homedir}/Maildir" >/dev/null; fi;
 
             # HAM
-            if [ -n "${TEACH_HAM_FOLDER}" ]; then process_folder "${TEACH_HAM_FOLDER}" "/home/${user}/Maildir" >/dev/null; fi;
+            if [ -n "${TEACH_HAM_FOLDER}" ]; then process_folder "${TEACH_HAM_FOLDER}" "${homedir}/Maildir" >/dev/null; fi;
         }
         else
         {
@@ -186,7 +188,7 @@ function process_domain()
     }
     fi;
 
-    if [ ! -d "/home/${user}/imap/${domain}/" ];
+    if [ ! -d "${homedir}/imap/${domain}/" ];
     then
     {
         e "[NOTICE] Does not seem to have imap folder. Skipping...";
@@ -194,7 +196,7 @@ function process_domain()
     }
     fi;
 
-    e "[OK] Found imap folder /home/${user}/imap/${domain}/";
+    e "[OK] Found imap folder ${homedir}/imap/${domain}/";
 
     if [ ! -f "/etc/virtual/${domain}/passwd" ];
     then

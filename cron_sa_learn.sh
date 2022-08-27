@@ -4,22 +4,22 @@
 ## Written by Alex Grebenschikov (zEitEr)
 ## Supported by: Poralix, www.poralix.com
 ## Report bugs and issues: https://github.com/poralix/directadmin-teach-sa/issues
-## Version: 0.10 (beta), Mon Nov 22 00:37:20 +07 2021
+## Version: 0.11 (beta, )Sat Aug 27 17:37:59 +07 2022
+##          0.10 (beta), Mon Nov 22 00:37:20 +07 2021
 ##          0.9 (beta), Sat Oct 30 17:37:09 +07 2021
 ##          0.8 (beta), Wed Dec 11 23:36:02 +07 2019
 ##          0.7 (beta), Sat Nov 18 11:57:31 +07 2017
 ##
 #######################################################################################
 ##
-## The script goes through all Directadmin users and teach SpamAssassin
-## per user bases. Every user has its own bayes data, stored at his/her
-## own homedir.
+## The script goes through all Directadmin users and teaches SpamAssassin/Rspamd
+## per user bases. Every user has its own bayes data, stored uner their own homedir.
 ##
 #######################################################################################
 ##
 ## MIT License
 ##
-## Copyright (c) 2016-2021 Alex S Grebenschikov (www.poralix.com)
+## Copyright (c) 2016-2022 Alex S Grebenschikov (www.poralix.com)
 ##
 ## Permission is hereby granted, free of charge, to any person obtaining a copy
 ## of this software and associated documentation files (the "Software"), to deal
@@ -57,7 +57,7 @@ MARK_AS_READ_TEACH_HAM_DATA="0";   # mark as read ham data
 TEACH_SPAM_FOLDER="INBOX.teach-isspam";
 TEACH_HAM_FOLDER="INBOX.teach-isnotspam";
 
-VERSION="0.10 (beta)";
+VERSION="0.11 (beta)";
 
 SETTINGS_FILE="`dirname $0`/settings.cnf";
 if [ -f "${SETTINGS_FILE}" ]; then . ${SETTINGS_FILE}; fi;
@@ -255,7 +255,7 @@ function process_maildir()
 
 function process_user()
 {
-    USER_HOME="/home/${user}";
+    USER_HOME=$(grep -m1 "^${user}:" /etc/passwd | awk -F: '{print $6}');
     DO_SYNC=0;
     cd "${USER_HOME}" || e "[ERROR] Failed to change directory to ${USER_HOME}";
 
@@ -276,7 +276,7 @@ function process_user()
             DOMAIN_DIR="${USER_HOME}/imap/${domain}";
             if [ -h "${DOMAIN_DIR}" ]; then continue; fi;
 
-            e "[OK] [${user}] [+] found domain ${domain} owned by ${user}";
+            e "[OK] [${user}] [+] found mail-domain ${domain} owned by ${user} in ${DOMAIN_DIR}";
 
             for mdir in $(ls -d ${DOMAIN_DIR}/*/Maildir 2>/dev/null);
             do
