@@ -186,12 +186,16 @@ function process_domain()
         }
         fi;
     }
+    else
+    {
+        e "[NOTICE] Does not seem to have Maildir folder ${homedir}/Maildir/. Skipping...";
+    }
     fi;
 
     if [ ! -d "${homedir}/imap/${domain}/" ];
     then
     {
-        e "[NOTICE] Does not seem to have imap folder. Skipping...";
+        e "[NOTICE] Does not seem to have imap folder ${homedir}/imap/${domain}/. Skipping...";
         return;
     }
     fi;
