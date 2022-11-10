@@ -12,6 +12,17 @@ cp -p ./0teach-sa_cron /etc/cron.d/
 cp -p settings.cnf.default settings.cnf
 ```
 
+# Upgrade
+
+```
+cd /usr/local/directadmin/scripts/custom/directadmin-teach-sa
+git config core.fileMode false
+git pull
+cp -p ./0teach-sa_cron /etc/cron.d/
+```
+
+Compare settings.cnf.default and settings.cnf for possible changes and updates.
+
 # First run
 
 Before running update *settings.cnf* if it's required. For example if you need to change folders' names.
