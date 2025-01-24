@@ -1,6 +1,12 @@
 # directadmin-teach-sa
-A set of scripts to create folders and teach SpamAssassin per user on Directadmin based servers. 
-Every single user has it's own bayes files stored under his/her homedir.
+A set of scripts to create folders and teach SpamAssassin/rSpamd per user on Directadmin based servers.
+
+- When using SpamAssassin: Every single user has it's own bayes files stored under his/her homedir.
+- When using rSpamd: All users will use shared fuzzy hashes stored in a local storage of rSpamd
+
+No real-time training is done, no training process is triggered on moving emails between folders. If you need training to be done real-time and immediately after moving an email into a destination folder, you will need to use the official solution from DirectAdmin docs.
+
+With this solution, just move emails and wait for a script running with cron to find email and to initiate a training process.
 
 # Installation
 
@@ -64,10 +70,10 @@ chown diradmin:diradmin /usr/local/directadmin/scripts/custom/email_create_post.
 ```
 
 **cron_sa_learn.sh** - a script to run with *cron*. The script goes through all Directadmin users and 
-teach SpamAssassin per user bases. Every user has its own bayes data, stored under his/her own homedir.
+train SpamAssassin or rSpamd (whichever is installed on a server).
 
 The script requires *root* permissions and *sudo* installed on a server to run. It will use *sudo* to 
-switch to user for teaching SpamAssassin.
+switch to user for teaching SpamAssassin. When training rSpamd no `sudo` is used, there is no need in this case.
 
 *Usage*:
 
@@ -150,7 +156,7 @@ IF IT'S REQUIRED YOU SHOULD UPDATE SETTINGS in settings.cnf
 
 # License and Copyright
 
-Copyright (c) 2016-2022 Alex S Grebenschikov (www.poralix.com)
+Copyright (c) 2016-2025 Alex S Grebenschikov (www.poralix.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
